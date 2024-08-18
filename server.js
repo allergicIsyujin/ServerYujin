@@ -54,3 +54,41 @@ app.get('/login', async (req, res) => {
   }
   })
   
+  app.get('/duplication',async (req,res)=>{
+    const userId="huon";//req.query.userid;
+    let user=await db.collection('user').findOne({userId:userId});
+    if(user){
+      console.log("아이디중복")
+    }
+    else{
+      console.log("아이디쓸수있음")
+    }
+  })
+
+  app.get('/signup',async (req,res)=>{
+    const userId="huho";//req.query.userid;
+    const userPs="1416";//req.query.userps;
+    let user=await db.collection('user').findOne({userId:userId});
+    if(user){
+      console.log("아이디중복")
+    }
+    else{
+      console.log("아이디쓸수있음")
+      db.collection('user').insertOne( {
+        userId : userId, 
+        userPs : userPs,
+        견과류:false,
+        계란:false,
+        닭고기:false,
+        돼지고기:false,
+        밀가루:false,
+        바나나:false,
+        사과:false,
+        새우:false,
+        생선:false,
+        우유:false,
+        포도:false,
+        해산물:false
+      });
+    }
+  })
