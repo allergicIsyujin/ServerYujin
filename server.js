@@ -58,10 +58,10 @@ app.get('/login', async (req, res) => {
     const userId="huon";//req.query.userid;
     let user=await db.collection('user').findOne({userId:userId});
     if(user){
-      console.log("아이디중복")
+      console.log("아이디중복")//json
     }
     else{
-      console.log("아이디쓸수있음")
+      console.log("아이디쓸수있음")//json
     }
   })
 
@@ -70,7 +70,7 @@ app.get('/login', async (req, res) => {
     const userPs="1416";//req.query.userps;
     let user=await db.collection('user').findOne({userId:userId});
     if(user){
-      console.log("아이디중복")
+      console.log("아이디중복")//json
     }
     else{
       console.log("아이디쓸수있음")
