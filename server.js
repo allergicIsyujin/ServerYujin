@@ -37,10 +37,6 @@ app.get('/login', async (req, res) => {
   const userId = req.query.userid;
   const userPs = req.query.userpassword;
   let user= await db.collection('user').findOne({ userId:userId});
-  console.log(userId)
-  console.log(user.userId)
-  console.log(userPs)
-  console.log(user.userPs)
   if(!user){
     res.json({message:"아이디없음"})
   }
@@ -55,25 +51,28 @@ app.get('/login', async (req, res) => {
   })
   
   app.get('/duplication',async (req,res)=>{
-    const userId="huon";//req.query.userid;
+    const userId=req.query.userId;
     let user=await db.collection('user').findOne({userId:userId});
     if(user){
-      console.log("아이디중복")//json
+      res.json({ message: "아이디가 중복입니다." });
     }
     else{
-      console.log("아이디쓸수있음")//json
+      res.json({ message: "아이디 사용가능합니다." });
     }
   })
 
   app.get('/signup',async (req,res)=>{
-    const userId="huho";//req.query.userid;
-    const userPs="1416";//req.query.userps;
+    console.log('통신중입니다.')
+    const userId=req.query.userId;
+    const userPs=req.query.userPs;
+    const userRPs=req.query.userRPs;
     let user=await db.collection('user').findOne({userId:userId});
     if(user){
-      console.log("아이디중복")//json
+      res.json({ message: "아이디가 중복입니다." });
     }
     else{
-      console.log("아이디쓸수있음")
+      if(userPs===userRPs){
+        console.log(userRPs,userPs)
       db.collection('user').insertOne( {
         userId : userId, 
         userPs : userPs,
@@ -90,5 +89,15 @@ app.get('/login', async (req, res) => {
         포도:false,
         해산물:false
       });
+      res.json({userId:userId})
     }
+    else{
+      console.log(userPs,userRPs)
+      res.json({ message: "비밀번호가 일치하지 않습니다." });
+    }
+    }
+  })
+
+  app.get('/base64',async (req,res)=>{
+
   })
