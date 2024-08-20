@@ -8,7 +8,6 @@ const cors = require('cors');
 const port = 3000;
 require('dotenv').config();
 let foodimage=0;
-let Result=0;
 
 app.use(cors());
 app.use(express.json({ limit: '100mb' })); // JSON 데이터 크기 제한
@@ -98,28 +97,9 @@ app.get('/signup', async (req, res) => {
   }
 });
 
-// Base64 이미지 데이터 처리 엔드포인트
-app.post('/base64', async (req, res) => {
-  const { userid, food } = req.body;
-  foodimage=food;
-  // db.collection('image').insertOne({userId:userid,food:food})
-  if (!userid || !food) {
-    return res.status(400).json({ error: 'Invalid input data' });
-  }
-  console.log(food)
-  console.log(`Received image from user: ${userid}`);
- // openAI_IMG(userid)로 이미지를 처리하는 부분을 여기에 구현하세요.
-//  const imageProcessingResult = openAI_IMG(userid); // 예시: 이미지 처리 함수 호출
-  await openAI_IMG(userid);
- await console.log(Result);
- await res.json({
-   result: Result// 이미지 처리 결과를 포함시킬 수도 있습니다.
- });
-});
-
 
 // POST 요청을 보내는 함수
-async function openAI_say(url, data) {
+async function openAI_api(url, data) {
   try {
     const response = await fetch(url, {
       method: 'POST',
@@ -163,16 +143,25 @@ app.post('/openAI/say', async(req, res) => {
   };
   console.log(dataToSend);
 
-  const apiUrl = 'http://10.150.151.116:5000/openAI/say';
-  const respond = await openAI_say(apiUrl, dataToSend);
+  const apiUrl = 'http://127.0.0.1:5000/openAI/say';
+  const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
+  
   console.log(result);
   res.send(result.ok);
 });
 
-async function openAI_IMG(userId) {
+app.post('/openAI/img', async(req, res) => {
+  const { userId, foodImage } = req.body;
+  foodimage = foodImage;
+  
+  if (!userId || !foodImage) {
+    return res.status(400).json({ error: 'Invalid input data' });
+  }
+  console.log(foodImage);
+  console.log(`Received image from user: ${userId}`);
+  
   let userAllergies = null;
-  console.log("도훈이 바보")
   try{
     // user 컬렉션에 접근
     const userCollection = db.collection('user');
@@ -191,8 +180,11 @@ async function openAI_IMG(userId) {
   }
   console.log(dataToSend);
   const apiUrl = 'http://127.0.0.1:5000/openAI/img';
-  const respond = await openAI_say(apiUrl, dataToSend);
+  const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
   console.log(result);
-  Result=result;
-};
+  res.json({
+    result:result,
+  });
+  
+});
