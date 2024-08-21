@@ -137,7 +137,7 @@ async function openAI_api(url, data) {
     // console.log(result);
     return result;
   } catch (error) {
-    console.error('Fetch error:', error);
+    console.error('Fetch error:', error)
   }
 }
 
