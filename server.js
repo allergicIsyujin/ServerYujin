@@ -183,8 +183,6 @@ app.post('/openAI/img', async(req, res) => {
   const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
   console.log(result);
-  res.json({
-    result:result,
-  });
+  res.json(result);
   
 });
