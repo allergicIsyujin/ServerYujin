@@ -172,7 +172,6 @@ app.post('/openAI/say', async(req, res) => {
 
 async function openAI_IMG(userId) {
   let userAllergies = null;
-  console.log("도훈이 바보")
   try{
     // user 컬렉션에 접근
     const userCollection = db.collection('user');
@@ -196,3 +195,31 @@ async function openAI_IMG(userId) {
   console.log(result);
   Result=result;
 };
+
+// 아이디 중복 확인 엔드포인트
+app.get('/saveImage', async (req, res) => {
+  const userId = req.query.userId;
+  let image=await db.collection('image').insertOne({userId:userId,food:foodimage})
+  console.log(image.insertedId);
+  db.collection('record').insertOne({_id:image.insertedId,ok:Result.ok,foodName:Result.foodName,ingredient:Result.ingredients,notIngredients:Result.notIngredients})
+  await res.json({
+    message: "success"// 이미지 처리 결과를 포함시킬 수도 있습니다.
+  });
+});
+
+app.post('/save/allergy', async(req, res) => {
+  const { userId, food } = req.body;
+  try{
+    const userCollection = db.collection('user');
+
+    const userInformation = await userCollection.findOne({ userId: userId });
+    // 아이디가 같은 문서 추출
+    const documentKeys = Object.keys(userInformation);
+    const filteredList = food.filter(value => documentKeys.includes(value));
+    filteredList.forEach((value, index) => {
+      filteredList[index] = !value;
+    });
+  } catch(error) {
+    console.error("Error fetching user information:", error);
+  }
+});
