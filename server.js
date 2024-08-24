@@ -9,6 +9,7 @@ const port = 3000;
 require('dotenv').config();
 let foodimage=0;
 let Result=0;
+const api_IP = "127.0.0.1:5000";
 
 app.use(cors());
 app.use(express.json({ limit: '100mb' })); // JSON 데이터 크기 제한
@@ -163,7 +164,7 @@ app.post('/openAI/say', async(req, res) => {
   };
   console.log(dataToSend);
 
-  const apiUrl = 'http://10.150.151.116:5000/openAI/say';
+  const apiUrl = `http://${api_IP}/openAI/say`;
   const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
   console.log(result);
@@ -189,7 +190,7 @@ async function openAI_IMG(userId) {
     imgB64 : foodimage,
   }
   console.log(dataToSend);
-  const apiUrl = 'http://127.0.0.1:5000/openAI/img';
+  const apiUrl = `http://${api_IP}/openAI/img`;
   const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
   console.log(result);
@@ -212,14 +213,119 @@ app.post('/save/allergy', async(req, res) => {
   try{
     const userCollection = db.collection('user');
 
-    const userInformation = await userCollection.findOne({ userId: userId });
+    let userInformation = await userCollection.findOne({ userId: userId });
+    const filter = { _id: userInformation._id  };
     // 아이디가 같은 문서 추출
-    const documentKeys = Object.keys(userInformation);
+    let documentKeys = Object.keys(userInformation);
+    for (const value of food) {
+      console.log(value);
+      if(!(userInformation.hasOwnProperty(value))){
+        console.log('이놈이다');
+        const updateDoc = {
+          $set: {
+            [value] : false // 추가할 필드와 값
+          }
+        };
+        const result = await userCollection.updateOne(filter, updateDoc);
+        console.log(result.matchedCount);
+      }
+    }
+    userInformation = await userCollection.findOne({ userId: userId });
+    documentKeys = Object.keys(userInformation);
     const filteredList = food.filter(value => documentKeys.includes(value));
-    filteredList.forEach((value, index) => {
-      filteredList[index] = !value;
-    });
+
+    const updateFields = {};
+    // 반전된 값을 오브젝트 형식으로 넣어주기
+    for (const value of filteredList) {
+      updateFields[value] = !userInformation[value];
+    };
+
+    console.log(updateFields);
+    // 업데이트 해주기
+    await userCollection.updateOne(
+      { userId: userId },
+      { $set: updateFields }
+    );
+    res.send('알러지를 수정하였습니다.');
   } catch(error) {
     console.error("Error fetching user information:", error);
   }
+});
+
+app.post('/myAllergy', async(req, res) => {
+  const { userId } = req.body;
+  try{
+    const userCollection = db.collection('user');
+    let userInformation = await userCollection.findOne({ userId: userId });
+    // Boolean 값이 true인 필드의 키 추출
+    const trueFields = Object.keys(userInformation).filter(key => userInformation[key] === true);
+    res.send(trueFields);
+  } catch(error) {
+    console.error("Error fetching user information:", error);
+  }
+});
+
+app.get('/newAllergy', async(req,res) => {
+  const userId = req.query.userId;
+  try{
+    const newAllergies = [];
+    const fields = ['_id', 'userId', 'userPs', '계란', '밀가루', '우유', '닭고기', '돼지고기', '견과류', '새우', '해산물', '생선', '포도', '바나나', '사과'];
+    const userCollection = db.collection('user');
+    let userInformation = await userCollection.findOne({ userId: userId });
+    let documentKeys = Object.keys(userInformation);
+    documentKeys.forEach(allergy => {
+      const find = fields.find(item => item === allergy);
+      if(find === undefined)
+        newAllergies.push(allergy);
+    });
+    res.send(newAllergies);
+  } catch(error) {
+    console.error("Error : ",error);
+  }
+})
+
+app.get('/foodRecord',async (req,res)=>{
+  let userId=req.query.userid;
+  const cursor= await db.collection('image').find({userId:userId})
+  const documents = await cursor.toArray();
+  let responseArray = [];
+  for (let i = 0; i < documents.length; i++) {
+    let pussy=0;
+    pussy=await db.collection('record').findOne({_id:documents[i]._id});
+    responseArray.push({foodName:pussy.foodName,backgroundColor:pussy.ok==='O'?1:0,image:documents[i].food,description:pussy.ingredient});
+  }
+  console.log(responseArray)
+  res.json(responseArray)
+})
+
+// app.get('/foodRecord', async (req, res) => {
+//   const userId = req.query.userId;
+//   let user = await db.collection('user').findOne({ userId: userId });
+//   if (user) {
+//     res.json({ message: "아이디가 중복입니다." });
+//   } else {
+//     res.json({ message: "아이디 사용가능합니다." });
+//   }
+// });
+// const foodData = [
+//   {
+//     foodName: "김치찌개",
+//     backgroundColor: true,
+//     image: "https://example.com/images/kimchi-jjigae.jpg",
+//     description: "매운 김치찌개"
+//   },
+//   {
+//     foodName: "불고기",
+//     backgroundColor: false,
+//     image: "https://example.com/images/bulgogi.jpg",
+//     description: "달콤한 불고기"
+//   }
+// ];
+app.get('/saveImage', async (req, res) => {
+  const userId = req.query.userId;
+  let image=await db.collection('image').insertOne({userId:userId,food:foodimage})
+  db.collection('record').insertOne({_id:ObjectId(image._id),ok:Result.ok,foodName:Result.foodName,ingredient:Result.ingredients,notIngredients:Result.notIngredients})
+  await res.json({
+    message: "success"// 이미지 처리 결과를 포함시킬 수도 있습니다.
+  });
 });
