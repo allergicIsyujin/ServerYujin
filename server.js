@@ -168,7 +168,7 @@ app.post('/openAI/say', async(req, res) => {
   const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
   console.log(result);
-  res.send(result.ok);
+  res.send(result);
 });
 
 async function openAI_IMG(userId) {
