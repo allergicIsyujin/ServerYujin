@@ -78,18 +78,18 @@ app.get('/signup', async (req, res) => {
       db.collection('user').insertOne({
         userId: userId,
         userPs: userPs,
-        견과류: false,
         계란: false,
+        밀: false,
+        우유: false,
         닭고기: false,
         돼지고기: false,
-        밀가루: false,
-        바나나: false,
-        사과: false,
+        견과류: false,
         새우: false,
-        생선: false,
-        우유: false,
-        포도: false,
-        해산물: false
+        오징어: false,
+        고등어: false,
+        게: false,
+        조개: false,
+        복숭아: false
       });
       res.json({ userId: userId });
     } else {
@@ -168,7 +168,7 @@ app.post('/openAI/say', async(req, res) => {
   const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
   console.log(result);
-  res.send(result);
+  res.json(result);
 });
 
 async function openAI_IMG(userId) {
@@ -269,7 +269,7 @@ app.get('/newAllergy', async(req,res) => {
   const userId = req.query.userId;
   try{
     const newAllergies = [];
-    const fields = ['_id', 'userId', 'userPs', '계란', '밀가루', '우유', '닭고기', '돼지고기', '견과류', '새우', '해산물', '생선', '포도', '바나나', '사과'];
+    const fields = ['_id', 'userId', 'userPs', '계란', '밀', '우유', '닭고기', '돼지고기', '견과류', '새우', '오징어', '고등어', '게', '조개', '복숭아'];
     const userCollection = db.collection('user');
     let userInformation = await userCollection.findOne({ userId: userId });
     let documentKeys = Object.keys(userInformation);
@@ -292,7 +292,7 @@ app.get('/foodRecord',async (req,res)=>{
   for (let i = 0; i < documents.length; i++) {
     let pussy=0;
     pussy=await db.collection('record').findOne({_id:documents[i]._id});
-    responseArray.push({foodName:pussy.foodName,backgroundColor:pussy.ok==='O'?1:0,image:documents[i].food,description:pussy.ingredient});
+    responseArray.push({foodName:pussy.foodName,backgroundColor:pussy.ok==='O'?1:0,image:documents[i].food,description:pussy.ingredient,ingredient:pussy.notIngredients});
   }
   console.log(responseArray)
   res.json(responseArray)
