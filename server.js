@@ -8,6 +8,7 @@ const cors = require('cors');
 const port = 3000;
 require('dotenv').config();
 let foodimage=0;
+let foodurlimage=0;
 let Result=0;
 const api_IP = "127.0.0.1:5000";
 
@@ -101,13 +102,15 @@ app.get('/signup', async (req, res) => {
 
 // Base64 이미지 데이터 처리 엔드포인트
 app.post('/base64', async (req, res) => {
-  const { userid, food } = req.body;
+  const { userid, food ,foodurl} = req.body;
+  foodurlimage=req.body.imageUrl
+  console.log(req.body.imageUrl)
   foodimage=food;
   // db.collection('image').insertOne({userId:userid,food:food})
   if (!userid || !food) {
     return res.status(400).json({ error: 'Invalid input data' });
   }
-  console.log(food)
+  // console.log(food)
   console.log(`Received image from user: ${userid}`);
  // openAI_IMG(userid)로 이미지를 처리하는 부분을 여기에 구현하세요.
 //  const imageProcessingResult = openAI_IMG(userid); // 예시: 이미지 처리 함수 호출
@@ -189,7 +192,7 @@ async function openAI_IMG(userId) {
     allergy : userAllergies,
     imgB64 : foodimage,
   }
-  console.log(dataToSend);
+ // console.log(dataToSend);
   const apiUrl = `http://${api_IP}/openAI/img`;
   const respond = await openAI_api(apiUrl, dataToSend);
   const result = JSON.parse(respond);
@@ -200,7 +203,7 @@ async function openAI_IMG(userId) {
 // 아이디 중복 확인 엔드포인트
 app.get('/saveImage', async (req, res) => {
   const userId = req.query.userId;
-  let image=await db.collection('image').insertOne({userId:userId,food:foodimage})
+  let image=await db.collection('image').insertOne({userId:userId,food:foodurlimage})
   console.log(image.insertedId);
   db.collection('record').insertOne({_id:image.insertedId,ok:Result.ok,foodName:Result.foodName,ingredient:Result.ingredients,notIngredients:Result.notIngredients})
   await res.json({
